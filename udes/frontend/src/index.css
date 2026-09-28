@@ -1,0 +1,186 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* GLOBAL STYLES */
+.bg-header-black {
+    background: #171617;
+}
+
+.text-color-white {
+    color: #edeceb;
+}
+
+.bg-body-black {
+    background: #0B0B0B;
+}
+
+.logo-rem-3{
+    width: 3rem;
+}
+
+.text-color-gray {
+    color: #B0B0B0  /* FOR TIMESTAMPS AND METADATA */
+}
+
+.border-t-color-gray{
+    border-top: 3px solid #38363a;
+}
+
+@layer components {
+  .field {
+    @apply mt-2 w-full border border-white/15 bg-[#17181b] px-3 py-2.5 text-sm text-white outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-500/30;
+    color-scheme: dark;
+  }
+
+  .platform-control-pane {
+    color: #edeceb;
+  }
+
+  .platform-control-pane > div {
+    border-color: rgb(255 255 255 / 0.10);
+    background: linear-gradient(180deg, rgb(255 255 255 / 0.035), rgb(0 0 0 / 0.18));
+  }
+
+  .platform-control-pane h1,
+  .platform-control-pane h2 {
+    letter-spacing: 0;
+    font-weight: 700;
+  }
+
+  .platform-control-pane h2 {
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgb(255 255 255 / 0.10);
+  }
+
+  .platform-control-pane table {
+    border-collapse: separate;
+    border-spacing: 0;
+    overflow: hidden;
+    border: 1px solid rgb(255 255 255 / 0.10);
+    background-color: rgb(0 0 0 / 0.32);
+  }
+
+  .platform-control-pane thead {
+    background-color: rgb(17 24 39 / 0.95);
+    color: rgb(255 255 255 / 0.68);
+    text-transform: uppercase;
+    font-size: 0.72rem;
+  }
+
+  .platform-control-pane th {
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .platform-control-pane th,
+  .platform-control-pane td {
+    border-bottom: 1px solid rgb(255 255 255 / 0.08);
+    padding: 0.8rem 0.9rem;
+    vertical-align: middle;
+  }
+
+  .platform-control-pane tbody tr {
+    transition: background-color 140ms ease, border-color 140ms ease;
+  }
+
+  .platform-control-pane tbody tr:hover {
+    background-color: rgb(255 255 255 / 0.045);
+  }
+
+  .platform-control-pane input,
+  .platform-control-pane select,
+  .platform-control-pane textarea {
+    min-height: 2.5rem;
+    border: 1px solid rgb(255 255 255 / 0.12);
+    background-color: rgb(3 7 18 / 0.82);
+    color: #edeceb;
+    color-scheme: dark;
+    outline: none;
+  }
+
+  .platform-control-pane input:focus,
+  .platform-control-pane select:focus,
+  .platform-control-pane textarea:focus {
+    border-color: rgb(239 68 68 / 0.75);
+    box-shadow: 0 0 0 2px rgb(239 68 68 / 0.16);
+  }
+
+  .platform-control-pane button {
+    min-height: 2.25rem;
+    transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+  }
+
+  .platform-control-pane button:disabled {
+    cursor: not-allowed;
+    opacity: 0.62;
+  }
+}
+
+input,
+select,
+textarea {
+  color-scheme: dark;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+input[type="month"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="week"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(1) brightness(1.8);
+  opacity: 0.9;
+}
+
+/*
+ * Preserve scrolling throughout the application while keeping every scroll
+ * region visually quiet at rest. The thumb appears on hover or keyboard focus.
+ */
+*,
+.autohide-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+*:hover,
+*:focus,
+*:focus-within,
+.autohide-scrollbar:hover,
+.autohide-scrollbar:focus,
+.autohide-scrollbar:focus-within {
+  scrollbar-color: rgb(255 255 255 / 0.28) transparent;
+}
+
+*::-webkit-scrollbar,
+.autohide-scrollbar::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track,
+.autohide-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb,
+.autohide-scrollbar::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-color: transparent;
+  background-clip: padding-box;
+}
+
+*:hover::-webkit-scrollbar-thumb,
+*:focus::-webkit-scrollbar-thumb,
+*:focus-within::-webkit-scrollbar-thumb,
+.autohide-scrollbar:hover::-webkit-scrollbar-thumb,
+.autohide-scrollbar:focus::-webkit-scrollbar-thumb,
+.autohide-scrollbar:focus-within::-webkit-scrollbar-thumb {
+  background-color: rgb(255 255 255 / 0.28);
+}
+
+*::-webkit-scrollbar-thumb:hover,
+.autohide-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(239 68 68 / 0.72);
+}
