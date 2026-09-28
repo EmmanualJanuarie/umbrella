@@ -50,8 +50,8 @@ export default function Header() {
         <div className="flex flex-row center">
           <div>
             <DropdownMenu 
-              defaultIcon="/white_hamburger.png" 
-              hoverIcon="/red_hamburger.png"
+              defaultIcon={`${import.meta.env.BASE_URL}white_hamburger.png`} 
+              hoverIcon={`${import.meta.env.BASE_URL}red_hamburger.png`}
             />
           </div>
         </div>

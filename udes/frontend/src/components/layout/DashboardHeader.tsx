@@ -51,8 +51,8 @@ export default function UmbrellaDashboardHeader({
         <div className="flex items-center gap-8">
           <AlertsDropdown />
           <DashboardDropdownMenu
-            defaultIcon="/white_hamburger.png"
-            hoverIcon="/red_hamburger.png"
+            defaultIcon={`${import.meta.env.BASE_URL}white_hamburger.png`}
+            hoverIcon={`${import.meta.env.BASE_URL}red_hamburger.png`}
           />
         </div>
       </nav>

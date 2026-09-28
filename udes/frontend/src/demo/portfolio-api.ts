@@ -1,193 +1,96 @@
-import type { AxiosAdapter, AxiosInstance, AxiosResponse, AxiosStatic, InternalAxiosRequestConfig } from "axios";
+import { AxiosError, type AxiosAdapter, type AxiosInstance, type AxiosResponse, type AxiosStatic, type InternalAxiosRequestConfig } from "axios";
 
-// All records below are synthetic. They exist only in memory so the existing
-// dashboards remain presentable when a public portfolio deployment has no API.
-const organization = {
-  org_id: "demo-organisation",
-  name: "Northstar Security (Demo)",
-  active: true,
-  created_at: "2026-08-01T08:00:00.000Z",
-};
-
-const branch = {
-  branch_id: "demo-branch",
-  name: "Cape Town Operations (Demo)",
-  location: "Cape Town",
-  org_id: organization.org_id,
-  created_at: "2026-08-01T08:00:00.000Z",
-};
-
+// Browser-only fixtures. Portfolio mode never contacts an UDES environment.
+const now = "2026-08-25T10:30:00.000Z";
+const periodStart = "2026-08-01T00:00:00.000Z";
+const periodEnd = "2026-08-31T23:59:59.999Z";
+const umbrella = { org_id: "umbrella-systems", name: "Umbrella Systems", active: true, created_at: "2026-01-01T08:00:00.000Z" };
+const org = { org_id: "demo-organisation", name: "Northstar Security (Demo)", active: true, created_at: "2026-08-01T08:00:00.000Z" };
+const org2 = { org_id: "demo-organisation-2", name: "Acacia Response Services (Demo)", active: true, is_trial: true, trial_ends_at: "2026-09-30T23:59:59.999Z", created_at: "2026-08-05T08:00:00.000Z" };
+const branch = { branch_id: "demo-branch", name: "Cape Town Operations (Demo)", location: "Cape Town, Western Cape", org_id: org.org_id, created_at: "2026-08-01T08:00:00.000Z" };
+const branch2 = { branch_id: "demo-branch-2", name: "Bellville Response Unit (Demo)", location: "Bellville, Western Cape", org_id: org.org_id, created_at: "2026-08-02T08:00:00.000Z" };
 const users = [
-  { user_id: "demo-main-super-admin", first_name: "Jordan", last_name: "Naidoo", email: "platform@udes.demo", role: "MAIN_SUPER_ADMIN", org_id: "umbrella-systems", branch_id: "umbrella-systems-hq", active: true },
-  { user_id: "demo-super-admin", first_name: "Avery", last_name: "Peters", email: "superadmin@udes.demo", role: "SUPER_ADMIN", org_id: "umbrella-systems", branch_id: "umbrella-systems-hq", active: true },
-  { user_id: "demo-org-owner", first_name: "Sam", last_name: "Nkosi", email: "owner@udes.demo", role: "ORG_OWNER", org_id: organization.org_id, branch_id: branch.branch_id, active: true },
-  { user_id: "demo-branch-admin", first_name: "Casey", last_name: "Williams", email: "branch@udes.demo", role: "BRANCH_ADMIN", org_id: organization.org_id, branch_id: branch.branch_id, active: true },
-  { user_id: "demo-officer", first_name: "Alex", last_name: "Mokoena", email: "officer@udes.demo", role: "OFFICER", org_id: organization.org_id, branch_id: branch.branch_id, active: true, officer_id: "demo-officer-record" },
+  { user_id: "demo-main-super-admin", first_name: "Jordan", last_name: "Naidoo", email: "platform@udes.demo", role: "MAIN_SUPER_ADMIN", org_id: umbrella.org_id, branch_id: "umbrella-systems-hq", active: true },
+  { user_id: "demo-super-admin", first_name: "Avery", last_name: "Peters", email: "superadmin@udes.demo", role: "SUPER_ADMIN", org_id: umbrella.org_id, branch_id: "umbrella-systems-hq", active: true },
+  { user_id: "demo-org-owner", first_name: "Sam", last_name: "Nkosi", email: "owner@udes.demo", role: "ORG_OWNER", org_id: org.org_id, branch_id: branch.branch_id, active: true },
+  { user_id: "demo-branch-admin", first_name: "Casey", last_name: "Williams", email: "branch@udes.demo", role: "BRANCH_ADMIN", org_id: org.org_id, branch_id: branch.branch_id, active: true },
+  { user_id: "demo-officer", first_name: "Alex", last_name: "Mokoena", email: "officer@udes.demo", role: "OFFICER", org_id: org.org_id, branch_id: branch.branch_id, active: true, officer_id: "demo-officer-record" },
+  { user_id: "demo-officer-2", first_name: "Lerato", last_name: "Dlamini", email: "lerato@udes.demo", role: "OFFICER", org_id: org.org_id, branch_id: branch.branch_id, active: true, officer_id: "demo-officer-record-2" },
 ];
+const officer = { officer_id: "demo-officer-record", badge_number: "UDES-214", department: "Field Operations", status: "ACTIVE", created_at: "2026-08-01T08:00:00.000Z", user: { ...users[4], organization: org, branch, deleted_at: null } };
+const officer2 = { officer_id: "demo-officer-record-2", badge_number: "UDES-118", department: "Field Operations", status: "ACTIVE", created_at: "2026-08-02T08:00:00.000Z", user: { ...users[5], organization: org, branch, deleted_at: null } };
+const camera = { camera_id: "demo-camera", serial_number: "DEMO-BC-047", usb_serial: "USB-DEMO-047", manufacturer: "Umbrella Systems", model: "Body Camera 4K", type: "UMBRELLA", status: "ACTIVE", branch_id: branch.branch_id, org_id: org.org_id, assigned_to: officer.officer_id, created_at: "2026-08-01T08:00:00.000Z", officer, branch, organization: org };
+const camera2 = { ...camera, camera_id: "demo-camera-2", serial_number: "DEMO-BC-118", usb_serial: "USB-DEMO-118", assigned_to: officer2.officer_id, officer: officer2 };
+const session = { session_id: "demo-session", officer_id: officer.officer_id, user_id: users[4].user_id, camera_id: camera.camera_id, shift_id: "demo-shift", branch_id: branch.branch_id, start_time: "2026-08-18T06:00:00.000Z", end_time: "2026-08-18T14:00:00.000Z", start_lat: -33.9249, start_lon: 18.4241, end_lat: -33.9249, end_lon: 18.4241, status: "COMPLETED", hash: "DEMO-SHA256-REDACTED", notes: "Synthetic portfolio patrol session.", officer, camera, branch, organization: org, violations: [] };
+const session2 = { ...session, session_id: "demo-session-2", officer_id: officer2.officer_id, user_id: users[5].user_id, camera_id: camera2.camera_id, shift_id: "demo-shift-2", start_time: "2026-08-19T14:00:00.000Z", end_time: "2026-08-19T22:00:00.000Z", officer: officer2, camera: camera2 };
+const video = (id: string, name: string, date: string, linkedSession: typeof session, tier: "TEMPORARY" | "ARCHIVE", legalHold = false) => ({ video_id: id, session_id: linkedSession.session_id, user_id: linkedSession.user_id, file_name: name, file_path: "redacted in portfolio demo", format: "MP4", resolution: "1920x1080", duration: 615, uploaded: true, tamper_flag: false, active: true, storage_state: legalHold ? "CASE_NEEDED" : "NORMAL", created_at: date, start_timestamp: date, end_timestamp: date, start_lat: -33.9249, start_lon: 18.4241, end_lat: -33.9249, end_lon: 18.4241, storage_tier: tier, retention_status: tier === "ARCHIVE" ? "ARCHIVED" : "ACTIVE", retention_until: tier === "TEMPORARY" ? "2026-09-17T23:59:59.000Z" : undefined, archive_until: tier === "ARCHIVE" ? "2033-08-10T23:59:59.000Z" : null, storage_provider: "PORTFOLIO_DEMO — OBJECT STORAGE UNAVAILABLE", storage_object_exists: false, legal_hold: legalHold, legal_hold_reason: legalHold ? "Demonstration legal hold" : undefined, session: linkedSession, user: linkedSession.officer.user });
+const videos = [video("demo-video-001", "Patrol_2026-08-18_1422.mp4", "2026-08-18T14:24:00.000Z", session, "TEMPORARY"), video("demo-video-002", "Incident_2026-08-10_2014.mp4", "2026-08-10T20:16:00.000Z", session, "ARCHIVE", true), video("demo-video-003", "Shift_Handover_2026-08-19_2150.mp4", "2026-08-19T21:55:00.000Z", session2, "TEMPORARY")];
+const shifts = [{ shift_id: "demo-shift", officer_id: officer.officer_id, camera_id: camera.camera_id, branch_id: branch.branch_id, org_id: org.org_id, start_time: session.start_time, end_time: session.end_time, status: "COMPLETED", off_days: [], deleted: false, officer, camera }, { shift_id: "demo-shift-2", officer_id: officer2.officer_id, camera_id: camera2.camera_id, branch_id: branch.branch_id, org_id: org.org_id, start_time: session2.start_time, end_time: session2.end_time, status: "COMPLETED", off_days: [], deleted: false, officer: officer2, camera: camera2 }, { shift_id: "demo-shift-3", officer_id: officer.officer_id, camera_id: camera.camera_id, branch_id: branch.branch_id, org_id: org.org_id, start_time: "2026-08-26T06:00:00.000Z", end_time: "2026-08-26T18:00:00.000Z", status: "SCHEDULED", off_days: [], deleted: false, officer, camera }];
+const audit: Array<Record<string, unknown>> = [{ audit_log_id: "demo-audit-1", entity_type: "VIDEO", entity_id: "demo-video-001", action: "CREATE", performed_by: users[4].user_id, timestamp: "2026-08-18T14:24:00.000Z", dashboard_type: "OFFICER", performer: users[4], details: { description: "Synthetic evidence upload record" } }, { audit_log_id: "demo-audit-2", entity_type: "VIDEO", entity_id: "demo-video-001", action: "ACCESS", performed_by: users[1].user_id, timestamp: "2026-08-18T14:26:00.000Z", dashboard_type: "UMBRELLA", performer: users[1], details: { description: "Synthetic integrity verification record" } }];
+const notifications = [{ notification_id: "demo-notification-1", user_id: users[3].user_id, title: "Evidence verified", message: "Patrol_2026-08-18_1422.mp4 passed the demonstration verification workflow.", entity_type: "VIDEO", entity_id: "demo-video-001", is_read: false, created_at: "2026-08-18T14:26:00.000Z" }];
+const requests: Array<Record<string, unknown>> = [{ request_id: "demo-request-1", video_id: "demo-video-002", requested_by: users[3].user_id, request_type: "INTERNAL_INVESTIGATION", status: "APPROVED", created_at: "2026-08-20T08:30:00.000Z", handled_at: "2026-08-20T09:00:00.000Z", handled_by: users[1].user_id, download_count: 0, export_status: "READY", download_available: false, server_time: now, video: videos[1], requester: users[3], handler: users[1] }];
+const reports = ["AUDIT_LOG", "CHAIN_OF_CUSTODY", "VIDEO_EXPORT"].map((report_type, index) => ({ artifact_id: `demo-report-${index}`, report_type, scope: index === 1 ? "ORG" : "BRANCH", scope_id: index === 1 ? org.org_id : branch.branch_id, organization_id: org.org_id, branch_id: index === 1 ? null : branch.branch_id, organization_name: org.name, branch_name: index === 1 ? null : branch.name, period_start: periodStart, period_end: periodEnd, generated_at: "2026-09-01T00:00:10.000Z", reporting_month: "2026-08", status: "READY", entry_count: index === 0 ? 24 : 3, download_count: index, pdf_available: true, source_report_id: `demo-source-${index}` }));
+let policy = { policy_id: "demo-global-policy", scope: "GLOBAL", organization_id: null, temporary_retention_days: 30, archive_retention_years: 7, automatic_deletion_enabled: false, upload_handover_grace_minutes: 30, active: true };
+let mfaEnabled = false;
+let sequence = 10;
 
-const officer = {
-  officer_id: "demo-officer-record",
-  badge_number: "UDES-214",
-  department: "Field Operations",
-  status: "ACTIVE",
-  created_at: "2026-08-01T08:00:00.000Z",
-  user: { ...users[4], organization, branch },
+function pathFrom(config: InternalAxiosRequestConfig) { try { return new URL(config.url ?? "", "https://portfolio.local").pathname.replace(/^\/api/, ""); } catch { return (config.url ?? "").replace(/^\/api/, ""); } }
+function ok(config: InternalAxiosRequestConfig, data: unknown, status = 200): Promise<AxiosResponse> { return Promise.resolve({ data, status, statusText: "OK", headers: {}, config }); }
+function body(config: InternalAxiosRequestConfig): Record<string, unknown> { if (typeof config.data === "string") { try { return JSON.parse(config.data) as Record<string, unknown>; } catch { return {}; } } return config.data && typeof config.data === "object" ? config.data as Record<string, unknown> : {}; }
+function unavailable(config: InternalAxiosRequestConfig, message: string): Promise<never> { const result: AxiosResponse = { data: { message, portfolio_demo: true }, status: 503, statusText: "Service unavailable", headers: {}, config }; return Promise.reject(new AxiosError(message, "ERR_BAD_RESPONSE", config, undefined, result)); }
+function record(action: string, entityId: string, description: string) { audit.unshift({ audit_log_id: `demo-audit-${sequence++}`, entity_type: "PORTFOLIO_DEMO", entity_id: entityId, action, performed_by: users[3].user_id, timestamp: new Date().toISOString(), dashboard_type: "BRANCH", performer: users[3], details: { description, portfolio_demo: true } }); }
+function pdf(title: string) { const stream = ["UDES — Umbrella Digital Evidence System", title, "Portfolio demonstration document — synthetic data only", "No customer information or evidence is included."].map((line, index) => `BT /F1 ${index ? 11 : 16} Tf 72 ${760 - index * 28} Td (${line}) Tj ET`).join("\n"); const objects = ["<< /Type /Catalog /Pages 2 0 R >>", "<< /Type /Pages /Kids [3 0 R] /Count 1 >>", "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>", "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>", `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`]; let value = "%PDF-1.4\n"; const offsets = [0]; objects.forEach((item, index) => { offsets.push(value.length); value += `${index + 1} 0 obj\n${item}\nendobj\n`; }); const start = value.length; value += `xref\n0 6\n0000000000 65535 f \n${offsets.slice(1).map((offset) => `${String(offset).padStart(10, "0")} 00000 n \n`).join("")}trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${start}\n%%EOF`; return new Blob([value], { type: "application/pdf" }); }
+
+const adapter: AxiosAdapter = async (config) => {
+  const path = pathFrom(config); const method = (config.method ?? "get").toLowerCase(); const data = body(config);
+  if (path === "/auth/csrf") return ok(config, { csrfToken: "portfolio-demo" });
+  if (path === "/auth/mfa/status" || path === "/retention/mfa/status") return ok(config, { enabled: mfaEnabled, confirmed_at: mfaEnabled ? now : null });
+  if (path === "/audit-report/sensitive-mfa/status") return ok(config, { enabled: mfaEnabled });
+  if (["/auth/mfa/setup", "/retention/mfa/setup", "/audit-report/sensitive-mfa/setup"].includes(path)) return ok(config, { secret: "PORTFOLIO-DEMO-NOT-A-REAL-SECRET", otpauth_uri: "otpauth://totp/UDES%20Portfolio?secret=DEMOONLY" });
+  if (["/auth/mfa/enable", "/retention/mfa/enable", "/audit-report/sensitive-mfa/enable"].includes(path)) { mfaEnabled = true; return ok(config, { enabled: true, confirmed_at: now, recovery_codes: ["DEMO-RECOVERY-1", "DEMO-RECOVERY-2"] }); }
+  if (path === "/auth/mfa/disable") { mfaEnabled = false; return ok(config, { enabled: false }); }
+  if (path === "/video" && method === "get") return ok(config, videos);
+  if (/^\/video\/[^/]+$/.test(path)) return ok(config, videos.find((item) => item.video_id === path.split("/")[2]) ?? videos[0]);
+  if (path.includes("stream-video")) return unavailable(config, "Video streaming is intentionally unavailable in this public portfolio build because it requires protected evidence object storage.");
+  if (path === "/camera" && method === "get") return ok(config, [camera, camera2]);
+  if (path === "/camera-scan/devices") return ok(config, { detected_at: now, platform: "Portfolio mock inventory", supported: true, devices: [camera, camera2].map((item) => ({ camera_id: item.camera_id, camera_serial_number: item.serial_number, manufacturer: item.manufacturer, model: item.model, device_id: item.camera_id, status: item.status, detected_at: now, organization_name: org.name, branch_name: branch.name, officer_name: `${item.officer.user.first_name} ${item.officer.user.last_name}`, last_upload_at: now, operational_state: "ACTIVE" })) });
+  if (path.startsWith("/camera/")) return ok(config, { ...camera, sessions: [session], videos });
+  if (path === "/officer") return ok(config, [officer, officer2]);
+  if (path.includes("/officer/") && path.endsWith("/sessions")) return ok(config, [session, session2]);
+  if (path.includes("/officer/") && path.endsWith("/shifts")) return ok(config, shifts);
+  if (path.startsWith("/officer/")) return ok(config, { ...officer, sessions: [session], shifts });
+  if (path === "/shift") return ok(config, shifts);
+  if (path === "/shift/officer/upload-handover-guidance") return ok(config, { has_camera_handover: true, next_officer_start: "2026-08-26T18:00:00.000Z", grace_minutes: 30, reminder_due: false, message: "Demo: upload before scheduled camera handover." });
+  if (path === "/session") return ok(config, [session, session2]);
+  if (path.startsWith("/session/")) return ok(config, session);
+  if (path === "/organization") return ok(config, [org, org2]);
+  if (path === "/branches") return ok(config, [branch, branch2]);
+  if (path === "/user") return ok(config, users);
+  if (path === "/platform-admin/umbrella-users") return ok(config, users.filter((user) => user.role === "SUPER_ADMIN" || user.role === "MAIN_SUPER_ADMIN"));
+  if (path === "/audit-log") return ok(config, audit);
+  if (path === "/notifications/poll") return ok(config, notifications);
+  if (path.startsWith("/notifications/")) return ok(config, { success: true });
+  if (path === "/billing/monthly") return ok(config, { snapshots: [{ usage_snapshot_id: "demo-bill-1", org_id: org.org_id, period_start: periodStart, period_end: periodEnd, uploaded_video_count: 3, streamed_seconds: 1907, review_minutes: 48, reports_created: 3, stored_gb_hours: "18.42", active_users: 6, active_cameras: 2, platform_estimated_cost: "1,240.00", currency: "ZAR", finalized: false, organization: { name: org.name } }, { usage_snapshot_id: "demo-bill-2", org_id: org2.org_id, period_start: periodStart, period_end: periodEnd, uploaded_video_count: 2, streamed_seconds: 620, review_minutes: 14, reports_created: 1, stored_gb_hours: "4.10", active_users: 3, active_cameras: 1, platform_estimated_cost: "465.00", currency: "ZAR", finalized: false, organization: { name: org2.name } }], branch_breakdown: [{ branch_id: branch.branch_id, branch_name: branch.name, uploaded_video_count: 3, uploaded_bytes: 3850000000 }, { branch_id: branch2.branch_id, branch_name: branch2.name, uploaded_video_count: 2, uploaded_bytes: 1100000000 }] });
+  if (path === "/audit-report/archive/scopes") return ok(config, { organizations: [org, org2], branches: [branch, branch2] });
+  if (path === "/audit-report/archive") return ok(config, reports);
+  if (path === "/audit-report/calendar") return ok(config, { current_year: 2026, earliest_year: 2026, mfa: { enabled: mfaEnabled, confirmed_at: mfaEnabled ? now : null }, years: [{ year: 2026, requires_mfa: false, months: [{ month: 8, label: "August", period_start: periodStart, period_end: periodEnd, requires_mfa: false, audit_reports: [{ report_id: "demo-source-audit", generated_at: now, entry_count: 24 }], chain_of_custody_reports: [{ report_id: "demo-source-custody", generated_at: now, verification_status: "VERIFIED" }] }] }] });
+  if (path.includes("pdf") || path.includes("/report/")) return ok(config, pdf("UDES Portfolio Evidence Report"));
+  if (path === "/video-requests/mine" || path === "/video-requests/all" || path.startsWith("/video-requests/org/")) return ok(config, requests);
+  if (path === "/video-requests" && method === "post") { const selected = videos.find((item) => item.video_id === data.video_id) ?? videos[0]; const item = { request_id: `demo-request-${sequence++}`, video_id: selected.video_id, requested_by: users[3].user_id, request_type: data.request_type ?? "INTERNAL_INVESTIGATION", status: "PENDING", created_at: new Date().toISOString(), requester_note: data.requester_note ?? "", download_count: 0, export_status: "NOT_REQUESTED", download_available: false, video: selected, requester: users[3], handler: null }; requests.unshift(item); record("CREATE", item.request_id, "Portfolio demonstration video request submitted."); return ok(config, item, 201); }
+  if (path.startsWith("/video-requests/") && path.endsWith("/download")) return unavailable(config, "Branded evidence exports are intentionally unavailable in this public portfolio build.");
+  if (path.startsWith("/video-requests/") && method !== "get") return ok(config, { success: true, portfolio_demo: true });
+  if (path === "/retention/policies" && method === "get") return ok(config, [policy]);
+  if (path === "/retention/policies") { policy = { ...policy, ...data }; record("UPDATE", policy.policy_id, "Portfolio retention policy updated locally."); return ok(config, policy); }
+  if (path === "/retention/approvals") return ok(config, { approval_code: "DEMO-482-917", expires_at: "2026-08-25T10:45:00.000Z", portfolio_demo: true });
+  if (path.startsWith("/retention/videos/")) { const item = videos.find((videoItem) => videoItem.video_id === path.split("/")[3]); if (item && path.endsWith("/archive")) { item.storage_tier = "ARCHIVE"; item.retention_status = "ARCHIVED"; item.archive_until = "2033-08-25T23:59:59.000Z"; } if (item && path.endsWith("/legal-hold")) item.legal_hold = Boolean(data.legal_hold ?? true); record("UPDATE", item?.video_id ?? "unknown", "Portfolio retention action recorded locally."); return ok(config, item ?? { success: true }); }
+  if (path === "/sync/upload/browser/check-duplicate") return ok(config, { duplicate: false, message: "No matching synthetic evidence record found." });
+  if (path === "/sync/upload/browser/init") return ok(config, { upload_id: `demo-upload-${sequence++}`, sync_session_id: "demo-sync-session", video_id: "demo-upload-video", upload_token: "portfolio-demo-token", key: "demo/evidence/object", part_size: 8388608, parts: [{ part_number: 1, url: "portfolio://upload/part-1" }] });
+  if (path.startsWith("/sync/upload/browser/status/")) return ok(config, { upload_id: path.split("/").at(-1), status: "VERIFIED", verification_status: "VERIFIED", completed_at: now, message: "Verified by the portfolio demonstration workflow." });
+  if (path === "/sync/upload/browser/complete") return ok(config, { upload: { upload_id: data.upload_id ?? "demo-upload", verification_status: "VERIFIED", status: "VERIFIED" }, message: "Portfolio upload workflow completed locally." });
+  if (path.startsWith("/sync/upload/")) return ok(config, { success: true, portfolio_demo: true });
+  if (method === "get") return ok(config, []);
+  record(method.toUpperCase(), path, "Portfolio demonstration action recorded locally.");
+  return ok(config, { success: true, portfolio_demo: true, message: "Action completed locally in the portfolio demonstration." });
 };
 
-const camera = {
-  camera_id: "demo-camera",
-  serial_number: "DEMO-BC-047",
-  model: "Body Camera 4K",
-  type: "UMBRELLA",
-  status: "ACTIVE",
-  branch_id: branch.branch_id,
-  org_id: organization.org_id,
-  assigned_to: officer.officer_id,
-  created_at: "2026-08-01T08:00:00.000Z",
-  officer,
-  branch,
-  organization,
-};
-
-const session = {
-  session_id: "demo-session",
-  officer_id: officer.officer_id,
-  user_id: users[4].user_id,
-  camera_id: camera.camera_id,
-  shift_id: "demo-shift",
-  branch_id: branch.branch_id,
-  start_time: "2026-08-18T06:00:00.000Z",
-  end_time: "2026-08-18T14:00:00.000Z",
-  status: "COMPLETED",
-  hash: "demo-integrity-hash",
-  officer,
-  camera,
-  branch,
-  organization,
-};
-
-const videos = [
-  {
-    video_id: "demo-video-001",
-    session_id: session.session_id,
-    user_id: users[4].user_id,
-    file_name: "Patrol_2026-08-18_1422.mp4",
-    file_path: "redacted in portfolio demo",
-    format: "MP4",
-    resolution: "1920x1080",
-    duration: 615,
-    uploaded: true,
-    tamper_flag: false,
-    active: true,
-    storage_state: "NORMAL",
-    created_at: "2026-08-18T14:24:00.000Z",
-    start_timestamp: "2026-08-18T14:22:00.000Z",
-    end_timestamp: "2026-08-18T14:32:15.000Z",
-    start_lat: -33.9249,
-    start_lon: 18.4241,
-    end_lat: -33.9249,
-    end_lon: 18.4241,
-    storage_tier: "TEMPORARY",
-    retention_status: "ACTIVE",
-    retention_until: "2026-09-17T23:59:59.000Z",
-    storage_provider: "DEMO_SERVICE_UNAVAILABLE",
-    storage_object_exists: false,
-    legal_hold: false,
-    session,
-    user: users[4],
-  },
-  {
-    video_id: "demo-video-002",
-    session_id: session.session_id,
-    user_id: users[4].user_id,
-    file_name: "Incident_2026-08-10_2014.mp4",
-    file_path: "redacted in portfolio demo",
-    format: "MP4",
-    resolution: "1920x1080",
-    duration: 980,
-    uploaded: true,
-    tamper_flag: false,
-    active: true,
-    storage_state: "CASE_NEEDED",
-    created_at: "2026-08-10T20:16:00.000Z",
-    start_timestamp: "2026-08-10T20:14:00.000Z",
-    end_timestamp: "2026-08-10T20:30:20.000Z",
-    storage_tier: "ARCHIVE",
-    retention_status: "ARCHIVED",
-    archive_until: "2033-08-10T23:59:59.000Z",
-    storage_provider: "DEMO_SERVICE_UNAVAILABLE",
-    storage_object_exists: false,
-    legal_hold: true,
-    legal_hold_reason: "Demonstration legal hold",
-    session,
-    user: users[4],
-  },
-];
-
-const shifts = [{
-  shift_id: "demo-shift",
-  officer_id: officer.officer_id,
-  camera_id: camera.camera_id,
-  branch_id: branch.branch_id,
-  org_id: organization.org_id,
-  start_time: "2026-08-18T06:00:00.000Z",
-  end_time: "2026-08-18T14:00:00.000Z",
-  status: "COMPLETED",
-  off_days: [],
-  deleted: false,
-  officer,
-  camera,
-}];
-
-const audit = [
-  { audit_log_id: "demo-audit-1", entity_type: "VIDEO", entity_id: "demo-video-001", action: "CREATE", performed_by: users[4].user_id, timestamp: "2026-08-18T14:24:00.000Z", dashboard_type: "OFFICER", performer: users[4], details: { description: "Synthetic portfolio upload record" } },
-  { audit_log_id: "demo-audit-2", entity_type: "VIDEO", entity_id: "demo-video-001", action: "ACCESS", performed_by: users[1].user_id, timestamp: "2026-08-18T14:26:00.000Z", dashboard_type: "UMBRELLA", performer: users[1], details: { description: "Synthetic integrity verification record" } },
-];
-
-function pathFrom(config: InternalAxiosRequestConfig) {
-  const raw = config.url ?? "";
-  try {
-    const pathname = new URL(raw, "https://portfolio.local").pathname;
-    return pathname.replace(/^\/api/, "");
-  } catch {
-    return raw.replace(/^\/api/, "");
-  }
-}
-
-function response(config: InternalAxiosRequestConfig, data: unknown, status = 200): Promise<AxiosResponse> {
-  return Promise.resolve({ data, status, statusText: status === 200 ? "OK" : "Service unavailable", headers: {}, config });
-}
-
-const portfolioAdapter: AxiosAdapter = async (config) => {
-  const path = pathFrom(config);
-  const method = (config.method ?? "get").toLowerCase();
-
-  if (path === "/auth/csrf") return response(config, { csrfToken: "portfolio-demo" });
-  if (path === "/auth/mfa/status") return response(config, { enabled: false, confirmed_at: null });
-  if (path === "/auth/mfa/setup") return response(config, { secret: "portfolio-demo", otpauth_uri: "Unavailable in portfolio demo" });
-  if (path === "/video") return response(config, videos);
-  if (path.startsWith("/stream-video/")) return response(config, { unavailable: true, message: "Evidence object storage service is unavailable in this portfolio demo." }, 503);
-  if (path === "/camera") return response(config, [camera]);
-  if (path.startsWith("/camera/")) return response(config, { ...camera, sessions: [{ ...session, videos }] });
-  if (path === "/officer") return response(config, [officer]);
-  if (path.startsWith("/officer/")) return response(config, { ...officer, sessions: [session], shifts });
-  if (path === "/shift") return response(config, shifts);
-  if (path === "/shift/officer/upload-handover-guidance") return response(config, { has_camera_handover: false, grace_minutes: 30, reminder_due: false });
-  if (path === "/session") return response(config, [session]);
-  if (path === "/organization") return response(config, [organization]);
-  if (path === "/branches") return response(config, [branch]);
-  if (path === "/user") return response(config, users);
-  if (path === "/audit-log") return response(config, audit);
-  if (path.startsWith("/notifications")) return response(config, []);
-  if (path.includes("billing") || path.includes("usage")) return response(config, { items: [], total_storage_bytes: 0, portfolio_demo: true });
-  if (path.includes("report")) return response(config, { items: [], reports: [], portfolio_demo: true });
-  if (path.includes("request")) return response(config, []);
-  if (path.includes("retention")) return response(config, { temporary_retention_days: 30, archive_retention_years: 7, automatic_deletion_enabled: false, portfolio_demo: true });
-  if (method === "get") return response(config, []);
-  return response(config, { success: true, portfolio_demo: true, message: "Action recorded locally for portfolio demonstration." });
-};
-
-export function installPortfolioDemoAdapter(api: AxiosInstance, axios: AxiosStatic) {
-  api.defaults.adapter = portfolioAdapter;
-  axios.defaults.adapter = portfolioAdapter;
-}
+export function installPortfolioDemoAdapter(api: AxiosInstance, axios: AxiosStatic) { api.defaults.adapter = adapter; axios.defaults.adapter = adapter; }
